@@ -18,6 +18,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ Serve uploaded images as static files
+app.use('/uploads', express.static('uploads'));
+
 db.sequelize
 	.sync({ alter: true })
 	.then(() => {

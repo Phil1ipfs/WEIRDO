@@ -13,14 +13,22 @@ require("dotenv").config();
 
 exports.createEvent = async (req, res) => {
 	try {
+		console.log("📥 Received event creation request");
+		console.log("Body:", req.body);
+		console.log("File:", req.file);
+
 		const { title, date, time, description, location, status } = req.body;
-		const image = req.file ? req.file.path : null;
+		// Store relative path for serving via static files (e.g., /uploads/events/event-123456.jpg)
+		const image = req.file ? `/uploads/events/${req.file.filename}` : null;
 
 		if (!title || !date || !time) {
+			console.error("❌ Validation failed: missing required fields");
 			return res
 				.status(400)
 				.json({ message: "Title, date, and time are required." });
 		}
+
+		console.log("📝 Creating event in database...");
 		const newEvent = await Event.create({
 			title,
 			date,
@@ -30,9 +38,13 @@ exports.createEvent = async (req, res) => {
 			status: status || "upcoming",
 			image,
 		});
+		console.log("✅ Event created:", newEvent.event_id);
 
 		// ✅ 2. Notify all users (new_event type)
+		console.log("📢 Fetching users for notifications...");
 		const users = await User.findAll({ attributes: ["user_id"] });
+		console.log(`Found ${users.length} users to notify`);
+
 		if (users && users.length > 0) {
 			const notifications = users.map((u) => ({
 				user_id: u.user_id,
@@ -43,6 +55,7 @@ exports.createEvent = async (req, res) => {
 			}));
 
 			await Notification.bulkCreate(notifications);
+			console.log("✅ Notifications created");
 		}
 
 		res.status(201).json({
@@ -50,8 +63,13 @@ exports.createEvent = async (req, res) => {
 			event: newEvent,
 		});
 	} catch (error) {
-		console.error("Error creating event:", error);
-		res.status(500).json({ message: "Internal server error." });
+		console.error("❌ Error creating event:", error);
+		console.error("Error details:", error.message);
+		console.error("Stack trace:", error.stack);
+		res.status(500).json({
+			message: "Internal server error.",
+			error: error.message // Include error details in response
+		});
 	}
 };
 
