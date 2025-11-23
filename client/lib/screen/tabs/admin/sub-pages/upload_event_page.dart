@@ -21,6 +21,7 @@ class _UploadEventPageState extends State<UploadEventPage> {
   final _locationController = TextEditingController();
 
   Uint8List? _imageBytes;
+  String? _imageName;
   final ImagePicker _picker = ImagePicker();
   bool _isDraft = false;
   bool _isLoading = false;
@@ -30,7 +31,10 @@ class _UploadEventPageState extends State<UploadEventPage> {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
-      setState(() => _imageBytes = bytes);
+      setState(() {
+        _imageBytes = bytes;
+        _imageName = pickedFile.name; // Capture the filename with extension
+      });
     }
   }
 
@@ -60,6 +64,7 @@ class _UploadEventPageState extends State<UploadEventPage> {
     setState(() => _isLoading = true);
 
     final bytes = _imageBytes ?? await _getDefaultImageBytes();
+    final imageName = _imageName ?? 'banner.png'; // Use picked name or default
 
     final result = await EventService.uploadEvent(
       title: _titleController.text,
@@ -68,6 +73,7 @@ class _UploadEventPageState extends State<UploadEventPage> {
       description: _descriptionController.text,
       location: _locationController.text,
       imageBytes: bytes,
+      imageName: imageName,
       status: _isDraft ? 'draft' : 'upcoming',
     );
 
