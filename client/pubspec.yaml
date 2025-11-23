@@ -1,0 +1,59 @@
+name: myriad
+description: "Myriad mobile app"
+publish_to: "none"
+
+version: 1.0.0+41
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.13.6
+  table_calendar: ^3.0.9
+  url_launcher: ^6.3.0
+  shared_preferences: ^2.2.2
+  shared_preferences_web: ^2.1.0
+  intl: ^0.18.1
+  image_picker: ^1.1.2
+  fl_chart: ^0.68.0
+  cupertino_icons: ^1.0.8
+  path_provider: ^2.1.2
+  flutter_launcher_icons: ^0.10.0
+  emailjs: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.10.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon-logo.png"
+  adaptive_icon_background: "#ffffff" # optional
+  adaptive_icon_foreground: "assets/images/icon-logo.png"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins/Poppins-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-Medium.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+          weight: 700
+    - family: Sahitya
+      fonts:
+        - asset: assets/fonts/Sahitya/Sahitya-Regular.ttf
+        - asset: assets/fonts/Sahitya/Sahitya-Bold.ttf
+          weight: 700

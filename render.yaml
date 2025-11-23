@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: janna-server
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_HOST
+        value: aws-1-ap-southeast-1.pooler.supabase.com
+      - key: DB_PORT
+        value: 6543
+      - key: DB_USER
+        value: postgres.mxfuvioxlsnegqbczsjm
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: postgres
+      - key: DB_SSL
+        value: true
