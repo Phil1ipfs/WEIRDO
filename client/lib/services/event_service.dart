@@ -52,7 +52,26 @@ class EventService {
     try {
       final streamedResponse = await request.send();
       final responseBody = await streamedResponse.stream.bytesToString();
-      final data = json.decode(responseBody);
+
+      // Check if response is HTML (error page) instead of JSON
+      if (responseBody.trim().startsWith('<!DOCTYPE') ||
+          responseBody.trim().startsWith('<html')) {
+        return {
+          'success': false,
+          'message': 'Server error: Received HTML response instead of JSON. Status: ${streamedResponse.statusCode}',
+        };
+      }
+
+      // Try to parse JSON
+      Map<String, dynamic> data;
+      try {
+        data = json.decode(responseBody);
+      } catch (e) {
+        return {
+          'success': false,
+          'message': 'Invalid server response. Status: ${streamedResponse.statusCode}',
+        };
+      }
 
       if (streamedResponse.statusCode == 201) {
         print('✅ Event uploaded successfully.');
@@ -72,9 +91,14 @@ class EventService {
           'event': data['event'],
         };
       } else {
+        // Include error details from server
+        String errorMsg = data['message'] ?? 'Failed to upload event.';
+        if (data['error'] != null) {
+          errorMsg += '\nDetails: ${data['error']}';
+        }
         return {
           'success': false,
-          'message': data['message'] ?? 'Failed to upload event.',
+          'message': errorMsg,
         };
       }
     } catch (e) {
