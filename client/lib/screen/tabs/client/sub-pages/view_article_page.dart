@@ -457,6 +457,10 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
   String? error;
   final TextEditingController commentController = TextEditingController();
 
+  // Reply state
+  int? _replyingToCommentId;
+  final TextEditingController _replyController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -560,19 +564,81 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
       if (response.statusCode == 201) {
         commentController.clear();
         await fetchArticle();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comment posted successfully!')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Comment posted successfully!')),
+          );
+        }
       } else {
         final body = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(body['message'] ?? 'Failed to post comment')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(body['message'] ?? 'Failed to post comment')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error submitting comment: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error submitting comment: $e')));
+      }
+    }
+  }
+
+  Future<void> submitReply(int parentId) async {
+    final reply = _replyController.text.trim();
+    if (reply.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in')),
+        );
+      }
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://janna-server.onrender.com/api/articles/comment'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'article_id': widget.articleId,
+          'comment': reply,
+          'parent_id': parentId,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        _replyController.clear();
+        setState(() => _replyingToCommentId = null);
+        await fetchArticle();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Reply posted successfully!')),
+          );
+        }
+      } else {
+        final body = jsonDecode(response.body);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(body['message'] ?? 'Failed to post reply')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error submitting reply: $e')),
+        );
+      }
     }
   }
 
@@ -759,88 +825,221 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
                           ) {
                             final name = (comment['fullName'] ?? 'Unknown User')
                                 .toString();
-                            return GestureDetector(
-                              onLongPress: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text("Delete Comment"),
-                                    content: const Text(
-                                      "Are you sure you want to delete this comment?",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text("Cancel"),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(false),
-                                      ),
-                                      TextButton(
-                                        child: const Text(
-                                          "Delete",
-                                          style: TextStyle(color: Colors.red),
+                            final commentId = comment['comment_id'] as int;
+                            final replies = (comment['replies'] as List<dynamic>?) ?? [];
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onLongPress: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text("Delete Comment"),
+                                        content: const Text(
+                                          "Are you sure you want to delete this comment?",
                                         ),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(true),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (confirm == true) {
-                                  await deleteComment(
-                                    comment['comment_id'].toString(),
-                                  );
-                                }
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Icon(
-                                      Icons.account_circle,
-                                      size: 32,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontFamily: 'Poppins',
-                                              fontSize: 15,
-                                            ),
+                                        actions: [
+                                          TextButton(
+                                            child: const Text("Cancel"),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(false),
                                           ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            comment['content'] ?? '',
-                                            style: const TextStyle(
-                                              fontFamily: 'Poppins',
+                                          TextButton(
+                                            child: const Text(
+                                              "Delete",
+                                              style: TextStyle(color: Colors.red),
                                             ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            formatDate(comment['createdAt']),
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey,
-                                              fontFamily: 'Poppins',
-                                            ),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(true),
                                           ),
                                         ],
                                       ),
+                                    );
+                                    if (confirm == true) {
+                                      await deleteComment(
+                                        comment['comment_id'].toString(),
+                                      );
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10.0,
                                     ),
-                                  ],
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.account_circle,
+                                          size: 32,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontFamily: 'Poppins',
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                comment['content'] ?? '',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Poppins',
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    formatDate(comment['createdAt']),
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey,
+                                                      fontFamily: 'Poppins',
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        _replyingToCommentId = commentId;
+                                                      });
+                                                    },
+                                                    child: const Text(
+                                                      'Reply',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Color(0xFFB36CC6),
+                                                        fontWeight: FontWeight.w600,
+                                                        fontFamily: 'Poppins',
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
+
+                                // Show reply input if this comment is being replied to
+                                if (_replyingToCommentId == commentId) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 42, top: 8, bottom: 8),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        TextField(
+                                          controller: _replyController,
+                                          maxLines: 2,
+                                          decoration: const InputDecoration(
+                                            hintText: 'Write your reply...',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.all(8),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _replyingToCommentId = null;
+                                                  _replyController.clear();
+                                                });
+                                              },
+                                              child: const Text('Cancel'),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            ElevatedButton(
+                                              onPressed: () => submitReply(commentId),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFFB36CC6),
+                                              ),
+                                              child: const Text(
+                                                'Post Reply',
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+
+                                // Display replies
+                                ...replies.map((reply) {
+                                  final replyName = (reply['fullName'] ?? 'Unknown User').toString();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(left: 42, top: 8),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.subdirectory_arrow_right,
+                                          size: 20,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(
+                                          Icons.account_circle,
+                                          size: 28,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                replyName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontFamily: 'Poppins',
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                reply['content'] ?? '',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Poppins',
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                formatDate(reply['createdAt']),
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.grey,
+                                                  fontFamily: 'Poppins',
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
                             );
-                          }).toList(),
+                          }),
                           const SizedBox(height: 20),
                           const Text(
                             'Add a Comment',
