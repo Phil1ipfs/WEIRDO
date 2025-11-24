@@ -670,9 +670,17 @@ exports.changeProfilePicture = async (req, res) => {
 	try {
 		const token = req.headers.authorization?.split(" ")[1];
 		if (!token) return res.status(401).json({ message: "Token missing" });
-		console.log("File info:", req.file);
+
+		if (!req.file) {
+			return res.status(400).json({ message: "No file uploaded" });
+		}
+
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		const profile_picture = req.file.path; // assuming middleware sets this
+
+		// Convert file path to URL format
+		// req.file.filename is like "profile-123456789.jpg"
+		// We want to save "/uploads/profiles/profile-123456789.jpg" to access via static server
+		const profile_picture = `/uploads/profiles/${req.file.filename}`;
 
 		await User.update(
 			{ profile_picture },
@@ -681,7 +689,10 @@ exports.changeProfilePicture = async (req, res) => {
 
 		return res
 			.status(200)
-			.json({ message: "Profile picture updated successfully" });
+			.json({
+				message: "Profile picture updated successfully",
+				profile_picture,
+			});
 	} catch (error) {
 		console.error("Error changing profile picture:", error);
 		return res

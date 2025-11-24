@@ -544,6 +544,19 @@ class _ClientProfileState extends State<ClientProfile> {
     fetchProfile();
   }
 
+  /// Helper function to build full profile picture URL
+  String _buildProfilePictureUrl(String? profilePicture) {
+    if (profilePicture == null || profilePicture.isEmpty) {
+      return "https://picsum.photos/200";
+    }
+    // If it starts with /uploads/, prepend the server URL
+    if (profilePicture.startsWith('/uploads/')) {
+      return 'https://janna-server.onrender.com$profilePicture';
+    }
+    // Otherwise return as is (for full URLs)
+    return profilePicture;
+  }
+
   /// --- Fetch client profile from backend ---
   Future<void> fetchProfile() async {
     setState(() => isLoading = true);
@@ -570,8 +583,7 @@ class _ClientProfileState extends State<ClientProfile> {
               ...profile,
               "email": data['email'] ?? "Not available",
               "role": data['role'] ?? "Client",
-              "profile_picture":
-                  data['profile_picture'] ?? "https://picsum.photos/200",
+              "profile_picture": _buildProfilePictureUrl(data['profile_picture']),
               "gender": profile['gender'] ?? "Not specified", // ✅ Added gender
             };
             isLoading = false;

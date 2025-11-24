@@ -5,6 +5,7 @@ const fs = require("fs");
 // ✅ Create uploads directories if they don't exist
 const eventsDir = path.join(__dirname, "../uploads/events");
 const validIdsDir = path.join(__dirname, "../uploads/valid_ids");
+const profilesDir = path.join(__dirname, "../uploads/profiles");
 
 if (!fs.existsSync(eventsDir)) {
 	fs.mkdirSync(eventsDir, { recursive: true });
@@ -12,19 +13,33 @@ if (!fs.existsSync(eventsDir)) {
 if (!fs.existsSync(validIdsDir)) {
 	fs.mkdirSync(validIdsDir, { recursive: true });
 }
+if (!fs.existsSync(profilesDir)) {
+	fs.mkdirSync(profilesDir, { recursive: true });
+}
 
 // ✅ Configure local file storage
 const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
-		// If the field is valid_id, save to valid_ids folder, otherwise to events folder
-		const folder = file.fieldname === "valid_id" ? validIdsDir : eventsDir;
+		let folder = eventsDir; // default
+		if (file.fieldname === "valid_id") {
+			folder = validIdsDir;
+		} else if (file.fieldname === "image" && req.path.includes("profile")) {
+			folder = profilesDir;
+		}
 		cb(null, folder);
 	},
 	filename: function (req, file, cb) {
 		// Generate unique filename: timestamp-randomstring.ext
 		const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
 		const ext = path.extname(file.originalname);
-		const prefix = file.fieldname === "valid_id" ? "valid-id-" : "event-";
+
+		let prefix = "event-";
+		if (file.fieldname === "valid_id") {
+			prefix = "valid-id-";
+		} else if (file.fieldname === "image" && req.path.includes("profile")) {
+			prefix = "profile-";
+		}
+
 		cb(null, prefix + uniqueSuffix + ext);
 	},
 });
