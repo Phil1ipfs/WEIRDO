@@ -50,6 +50,9 @@ exports.registerDoctor = async (req, res) => {
 			password,
 		} = req.body;
 
+		// Get uploaded file path if exists
+		const validIdImagePath = req.file ? req.file.filename : null;
+
 		// Validate password
 		const passwordError = validatePassword(password);
 		if (passwordError) {
@@ -94,7 +97,7 @@ exports.registerDoctor = async (req, res) => {
 				last_name,
 				field_id,
 				contact_number,
-				valid_id,
+				valid_id: validIdImagePath || valid_id, // Use uploaded image path if available, otherwise use text field
 				id_number,
 				gender,
 				user_id: user.user_id,
@@ -215,6 +218,21 @@ exports.login = async (req, res) => {
 		const isMatch = await bcrypt.compare(password, user.password);
 		if (!isMatch) {
 			return res.status(401).json({ message: "Invalid email or password" });
+		}
+
+		// Check if user is a doctor and if their account is pending
+		if (user.role === "doctor") {
+			const doctor = await Doctor.findOne({ where: { user_id: user.user_id } });
+			if (doctor && doctor.status === "pending") {
+				return res.status(403).json({
+					message: "Your account is pending admin approval. Please wait for approval.",
+				});
+			}
+			if (doctor && doctor.status === "disabled") {
+				return res.status(403).json({
+					message: "Your account has been disabled. Please contact support.",
+				});
+			}
 		}
 
 		// Hash the role (bcrypt is async and one-way)
@@ -669,5 +687,114 @@ exports.changeProfilePicture = async (req, res) => {
 		return res
 			.status(500)
 			.json({ message: "Failed to change profile picture" });
+	}
+};
+
+// Get all pending doctors for admin approval
+exports.getPendingDoctors = async (req, res) => {
+	try {
+		const pendingDoctors = await Doctor.findAll({
+			where: { status: "pending" },
+			include: [
+				{
+					model: User,
+					as: "user",
+					attributes: ["email", "user_id"],
+				},
+				{
+					model: Field,
+					as: "field",
+					attributes: ["name"],
+				},
+			],
+			order: [["createdAt", "DESC"]],
+		});
+
+		return res.status(200).json({
+			message: "Pending doctors retrieved successfully",
+			doctors: pendingDoctors,
+		});
+	} catch (error) {
+		console.error("Error getting pending doctors:", error);
+		return res.status(500).json({
+			message: "Failed to get pending doctors",
+			error: error.message,
+		});
+	}
+};
+
+// Approve a doctor account
+exports.approveDoctor = async (req, res) => {
+	const t = await db.sequelize.transaction();
+	try {
+		const { doctor_id } = req.params;
+
+		const doctor = await Doctor.findByPk(doctor_id, { transaction: t });
+
+		if (!doctor) {
+			await t.rollback();
+			return res.status(404).json({ message: "Doctor not found" });
+		}
+
+		// Update doctor status to enabled
+		await doctor.update({ status: "enabled" }, { transaction: t });
+
+		// Update user status to enabled
+		await User.update(
+			{ status: "enabled" },
+			{ where: { user_id: doctor.user_id }, transaction: t }
+		);
+
+		await t.commit();
+
+		return res.status(200).json({
+			message: "Doctor approved successfully",
+			doctor,
+		});
+	} catch (error) {
+		await t.rollback();
+		console.error("Error approving doctor:", error);
+		return res.status(500).json({
+			message: "Failed to approve doctor",
+			error: error.message,
+		});
+	}
+};
+
+// Reject a doctor account
+exports.rejectDoctor = async (req, res) => {
+	const t = await db.sequelize.transaction();
+	try {
+		const { doctor_id } = req.params;
+
+		const doctor = await Doctor.findByPk(doctor_id, { transaction: t });
+
+		if (!doctor) {
+			await t.rollback();
+			return res.status(404).json({ message: "Doctor not found" });
+		}
+
+		// Update doctor status to disabled
+		await doctor.update({ status: "disabled" }, { transaction: t });
+
+		// Update user status to disabled
+		await User.update(
+			{ status: "disabled" },
+			{ where: { user_id: doctor.user_id }, transaction: t }
+		);
+
+		await t.commit();
+
+		return res.status(200).json({
+			message: "Doctor rejected successfully",
+			doctor,
+		});
+	} catch (error) {
+		await t.rollback();
+		console.error("Error rejecting doctor:", error);
+		return res.status(500).json({
+			message: "Failed to reject doctor",
+			error: error.message,
+		});
 	}
 };

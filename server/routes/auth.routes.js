@@ -5,7 +5,7 @@ const router = express.Router();
 const authController = require("../controllers/auth.controllers.js");
 const upload = require("../middleware/upload");
 // Define the route for creating a doctor
-router.post("/doctors", authController.registerDoctor);
+router.post("/doctors", upload.single("valid_id"), authController.registerDoctor);
 router.post("/clients", authController.registerClient);
 router.post("/admins", authController.registerAdmin);
 router.post("/login", authController.login);
@@ -22,4 +22,10 @@ router.put(
 );
 router.post("/forgot-password", authController.forgotPassword);
 router.put("/reset-password", authController.resetPassword);
+
+// Admin routes for doctor approval
+router.get("/doctors/pending", authController.getPendingDoctors);
+router.put("/doctors/:doctor_id/approve", authController.approveDoctor);
+router.put("/doctors/:doctor_id/reject", authController.rejectDoctor);
+
 module.exports = router;

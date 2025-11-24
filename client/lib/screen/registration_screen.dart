@@ -404,7 +404,9 @@
 //   }
 // }
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/dropdown_service.dart';
 import '../services/auth_service.dart';
 import 'terms_screen.dart';
@@ -436,6 +438,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   // ✅ Added for password visibility toggle
   bool _obscurePassword = true;
 
+  // ✅ Image picker for valid ID
+  Uint8List? _validIdImage;
+  String? _validIdFileName;
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -455,6 +462,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to load fields: $e')));
+    }
+  }
+
+  // ✅ Image picker for valid ID
+  Future<void> _pickValidId() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _validIdImage = bytes;
+        _validIdFileName = pickedFile.name;
+      });
     }
   }
 
@@ -482,7 +501,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       if (_userType == 'doctor') {
         data['valid_id'] = _validIdController.text;
-        final result = await AuthService.registerDoctor(data);
+        final result = await AuthService.registerDoctor(
+          data,
+          validIdImage: _validIdImage,
+          validIdFileName: _validIdFileName,
+        );
         _handleResponse(result);
       } else {
         final result = await AuthService.registerClient(data);
@@ -704,7 +727,45 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                         ),
                   const SizedBox(height: 16),
-                  _buildTextField(_validIdController, 'Valid ID'),
+                  _buildTextField(_validIdController, 'Valid ID Number'),
+                  const SizedBox(height: 16),
+
+                  // Valid ID Image Upload Button
+                  ElevatedButton.icon(
+                    onPressed: _pickValidId,
+                    icon: const Icon(Icons.attach_file, color: Colors.white),
+                    label: Text(
+                      _validIdFileName ?? 'Attached valid id',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFB36CC6),
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+
+                  // Show image preview if selected
+                  if (_validIdImage != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 150,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.memory(
+                          _validIdImage!,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                 ],
 
