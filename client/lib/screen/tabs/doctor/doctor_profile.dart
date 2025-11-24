@@ -592,6 +592,19 @@ class _DoctorProfileState extends State<DoctorProfile> {
     fetchProfile();
   }
 
+  /// Helper function to build full profile picture URL
+  String _buildProfilePictureUrl(String? profilePicture) {
+    if (profilePicture == null || profilePicture.isEmpty) {
+      return "https://picsum.photos/200";
+    }
+    // If it starts with /uploads/, prepend the server URL
+    if (profilePicture.startsWith('/uploads/')) {
+      return 'https://janna-server.onrender.com$profilePicture';
+    }
+    // Otherwise return as is (for full URLs)
+    return profilePicture;
+  }
+
   Future<void> fetchProfile() async {
     setState(() => isLoading = true);
     try {
@@ -621,8 +634,7 @@ class _DoctorProfileState extends State<DoctorProfile> {
               "role": data['role'] ?? 'Doctor',
               "specialty_name":
                   doctorProfile['field']?['name'] ?? 'Not specified',
-              "profile_picture":
-                  data['profile_picture'] ?? "https://picsum.photos/200",
+              "profile_picture": _buildProfilePictureUrl(data['profile_picture']),
               "gender":
                   doctorProfile['gender'] ?? "Not specified", // 👈 Added safely
             };

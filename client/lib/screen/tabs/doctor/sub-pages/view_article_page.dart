@@ -45,13 +45,6 @@
 //           article = json.decode(response.body);
 //           isLoading = false;
 //         });
-
-//         // ✅ Show snackbar only if user performed a refresh
-//         if (ScaffoldMessenger.of(context).mounted) {
-//           ScaffoldMessenger.of(
-//             context,
-//           ).showSnackBar(const SnackBar(content: Text('Article refreshed!')));
-//         }
 //       } else {
 //         setState(() {
 //           error = 'Failed to load article';
@@ -140,70 +133,6 @@
 //     }
 //   }
 
-//   Future<void> _confirmDeleteArticle() async {
-//     final confirm = await showDialog<bool>(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         title: const Text('Delete Article'),
-//         content: const Text('Are you sure you want to delete this article?'),
-//         actions: [
-//           TextButton(
-//             child: const Text('Cancel'),
-//             onPressed: () => Navigator.of(context).pop(false),
-//           ),
-//           TextButton(
-//             child: const Text('Delete', style: TextStyle(color: Colors.red)),
-//             onPressed: () => Navigator.of(context).pop(true),
-//           ),
-//         ],
-//       ),
-//     );
-
-//     if (confirm == true) {
-//       await _deleteArticle();
-//     }
-//   }
-
-//   Future<void> _deleteArticle() async {
-//     try {
-//       final prefs = await SharedPreferences.getInstance();
-//       final token = prefs.getString('token');
-
-//       if (token == null) {
-//         ScaffoldMessenger.of(
-//           context,
-//         ).showSnackBar(const SnackBar(content: Text('User not logged in')));
-//         return;
-//       }
-
-//       final response = await http.delete(
-//         Uri.parse('https://janna-server.onrender.com/api/articles/${widget.articleId}'),
-//         headers: {
-//           'Content-Type': 'application/json',
-//           'Authorization': 'Bearer $token',
-//         },
-//       );
-
-//       if (response.statusCode == 200) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text('Article deleted successfully!')),
-//         );
-//         Navigator.pop(context);
-//       } else {
-//         final body = jsonDecode(response.body);
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(
-//             content: Text(body['message'] ?? 'Failed to delete article'),
-//           ),
-//         );
-//       }
-//     } catch (e) {
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(SnackBar(content: Text('Error deleting article: $e')));
-//     }
-//   }
-
 //   void _showError(String message) {
 //     showDialog(
 //       context: context,
@@ -269,242 +198,237 @@
 //                 style: TextStyle(fontFamily: 'Poppins'),
 //               ),
 //             )
-//           : RefreshIndicator(
-//               onRefresh: fetchArticle, // ✅ Pull-to-refresh reload
-//               color: const Color(0xFFB36CC6),
-//               child: SingleChildScrollView(
-//                 physics: const AlwaysScrollableScrollPhysics(),
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     ClipRRect(
-//                       borderRadius: const BorderRadius.only(
-//                         bottomLeft: Radius.circular(12),
-//                         bottomRight: Radius.circular(12),
-//                       ),
-//                       child: Image.asset(
-//                         'assets/images/banner.png',
-//                         height: 200,
-//                         width: double.infinity,
-//                         fit: BoxFit.cover,
-//                       ),
+//           : SingleChildScrollView(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   ClipRRect(
+//                     borderRadius: const BorderRadius.only(
+//                       bottomLeft: Radius.circular(12),
+//                       bottomRight: Radius.circular(12),
 //                     ),
-//                     const SizedBox(height: 16),
-//                     Padding(
-//                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-//                       child: Column(
-//                         crossAxisAlignment: CrossAxisAlignment.start,
-//                         children: [
-//                           Text(
-//                             article!['title'] ?? 'Untitled',
-//                             style: const TextStyle(
-//                               fontFamily: 'Poppins',
-//                               fontSize: 18,
-//                               fontWeight: FontWeight.bold,
-//                             ),
+//                     child: Image.asset(
+//                       'assets/images/banner.png',
+//                       height: 200,
+//                       width: double.infinity,
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 16),
+//                   Padding(
+//                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Text(
+//                           article!['title'] ?? 'Untitled',
+//                           style: const TextStyle(
+//                             fontFamily: 'Poppins',
+//                             fontSize: 18,
+//                             fontWeight: FontWeight.bold,
 //                           ),
-//                           const SizedBox(height: 8),
-//                           Row(
-//                             children: [
-//                               const Icon(
-//                                 Icons.access_time,
-//                                 size: 16,
+//                         ),
+//                         const SizedBox(height: 8),
+//                         Row(
+//                           children: [
+//                             const Icon(
+//                               Icons.access_time,
+//                               size: 16,
+//                               color: Colors.grey,
+//                             ),
+//                             const SizedBox(width: 4),
+//                             Text(
+//                               formatDate(article!['updatedAt']),
+//                               style: const TextStyle(
+//                                 fontFamily: 'Poppins',
+//                                 fontSize: 13,
 //                                 color: Colors.grey,
 //                               ),
-//                               const SizedBox(width: 4),
-//                               Text(
-//                                 formatDate(article!['updatedAt']),
+//                             ),
+//                             const SizedBox(width: 12),
+//                             Container(
+//                               padding: const EdgeInsets.symmetric(
+//                                 horizontal: 8,
+//                                 vertical: 2,
+//                               ),
+//                               decoration: BoxDecoration(
+//                                 color: Colors.grey.shade200,
+//                                 borderRadius: BorderRadius.circular(6),
+//                               ),
+//                               child: Text(
+//                                 article!['status'] ?? 'Unknown',
 //                                 style: const TextStyle(
 //                                   fontFamily: 'Poppins',
-//                                   fontSize: 13,
-//                                   color: Colors.grey,
+//                                   fontSize: 12,
+//                                   fontStyle: FontStyle.italic,
+//                                   color: Colors.black87,
 //                                 ),
 //                               ),
-//                               const SizedBox(width: 12),
-//                               Container(
-//                                 padding: const EdgeInsets.symmetric(
-//                                   horizontal: 8,
-//                                   vertical: 2,
-//                                 ),
-//                                 decoration: BoxDecoration(
-//                                   color: Colors.grey.shade200,
-//                                   borderRadius: BorderRadius.circular(6),
-//                                 ),
-//                                 child: Text(
-//                                   article!['status'] ?? 'Unknown',
-//                                   style: const TextStyle(
-//                                     fontFamily: 'Poppins',
-//                                     fontSize: 12,
-//                                     fontStyle: FontStyle.italic,
-//                                     color: Colors.black87,
-//                                   ),
-//                                 ),
-//                               ),
-//                             ],
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 10),
+//                         Text(
+//                           article!['content'] ?? '',
+//                           style: const TextStyle(
+//                             fontFamily: 'Sahitya',
+//                             fontSize: 17,
+//                             height: 1.7,
+//                             color: Colors.black87,
 //                           ),
-//                           const SizedBox(height: 10),
-//                           Text(
-//                             article!['content'] ?? '',
-//                             style: const TextStyle(
-//                               fontFamily: 'Sahitya',
-//                               fontSize: 17,
-//                               height: 1.7,
-//                               color: Colors.black87,
+//                         ),
+
+//                         // ✅ Display source link if available
+//                         if (article!['link'] != null &&
+//                             article!['link'].toString().isNotEmpty)
+//                           Padding(
+//                             padding: const EdgeInsets.only(
+//                               top: 16.0,
+//                               bottom: 8,
+//                             ),
+//                             child: GestureDetector(
+//                               onTap: () => _openSourceLink(article!['link']),
+//                               child: Text(
+//                                 "Source: ${article!['link']}",
+//                                 style: const TextStyle(
+//                                   fontFamily: 'Poppins',
+//                                   color: Color(0xFFB36CC6),
+//                                   decoration: TextDecoration.underline,
+//                                   fontSize: 14,
+//                                 ),
+//                               ),
 //                             ),
 //                           ),
 
-//                           // ✅ Display source link if available
-//                           if (article!['link'] != null &&
-//                               article!['link'].toString().isNotEmpty)
-//                             Padding(
-//                               padding: const EdgeInsets.only(
-//                                 top: 16.0,
-//                                 bottom: 8,
-//                               ),
-//                               child: GestureDetector(
-//                                 onTap: () => _openSourceLink(article!['link']),
-//                                 child: Text(
-//                                   "Source: ${article!['link']}",
-//                                   style: const TextStyle(
-//                                     fontFamily: 'Poppins',
-//                                     color: Color(0xFFB36CC6),
-//                                     decoration: TextDecoration.underline,
-//                                     fontSize: 14,
-//                                   ),
-//                                 ),
-//                               ),
-//                             ),
-
-//                           const SizedBox(height: 30),
-//                           const Text(
-//                             'Comments',
-//                             style: TextStyle(
-//                               fontFamily: 'Poppins',
-//                               fontWeight: FontWeight.w600,
-//                               fontSize: 18,
-//                             ),
+//                         const SizedBox(height: 30),
+//                         const Text(
+//                           'Comments',
+//                           style: TextStyle(
+//                             fontFamily: 'Poppins',
+//                             fontWeight: FontWeight.w600,
+//                             fontSize: 18,
 //                           ),
-//                           const SizedBox(height: 10),
-//                           ...(article!['comments'] as List<dynamic>).map((
-//                             comment,
-//                           ) {
-//                             final name = (comment['fullName'] ?? 'Unknown User')
-//                                 .toString();
-//                             return GestureDetector(
-//                               onLongPress: () async {
-//                                 final confirm = await showDialog<bool>(
-//                                   context: context,
-//                                   builder: (context) => AlertDialog(
-//                                     title: const Text("Delete Comment"),
-//                                     content: const Text(
-//                                       "Are you sure you want to delete this comment?",
+//                         ),
+//                         const SizedBox(height: 10),
+//                         ...(article!['comments'] as List<dynamic>).map((
+//                           comment,
+//                         ) {
+//                           final name = (comment['fullName'] ?? 'Unknown User')
+//                               .toString();
+//                           return GestureDetector(
+//                             onLongPress: () async {
+//                               final confirm = await showDialog<bool>(
+//                                 context: context,
+//                                 builder: (context) => AlertDialog(
+//                                   title: const Text("Delete Comment"),
+//                                   content: const Text(
+//                                     "Are you sure you want to delete this comment?",
+//                                   ),
+//                                   actions: [
+//                                     TextButton(
+//                                       child: const Text("Cancel"),
+//                                       onPressed: () =>
+//                                           Navigator.of(context).pop(false),
 //                                     ),
-//                                     actions: [
-//                                       TextButton(
-//                                         child: const Text("Cancel"),
-//                                         onPressed: () =>
-//                                             Navigator.of(context).pop(false),
+//                                     TextButton(
+//                                       child: const Text(
+//                                         "Delete",
+//                                         style: TextStyle(color: Colors.red),
 //                                       ),
-//                                       TextButton(
-//                                         child: const Text(
-//                                           "Delete",
-//                                           style: TextStyle(color: Colors.red),
-//                                         ),
-//                                         onPressed: () =>
-//                                             Navigator.of(context).pop(true),
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 );
-
-//                                 if (confirm == true) {
-//                                   await deleteComment(
-//                                     comment['comment_id'].toString(),
-//                                   );
-//                                 }
-//                               },
-//                               child: Padding(
-//                                 padding: const EdgeInsets.symmetric(
-//                                   vertical: 10.0,
-//                                 ),
-//                                 child: Row(
-//                                   crossAxisAlignment: CrossAxisAlignment.start,
-//                                   children: [
-//                                     const Icon(
-//                                       Icons.account_circle,
-//                                       size: 32,
-//                                       color: Colors.grey,
-//                                     ),
-//                                     const SizedBox(width: 10),
-//                                     Expanded(
-//                                       child: Column(
-//                                         crossAxisAlignment:
-//                                             CrossAxisAlignment.start,
-//                                         children: [
-//                                           Text(
-//                                             name,
-//                                             style: const TextStyle(
-//                                               fontWeight: FontWeight.w600,
-//                                               fontFamily: 'Poppins',
-//                                               fontSize: 15,
-//                                             ),
-//                                           ),
-//                                           const SizedBox(height: 4),
-//                                           Text(
-//                                             comment['content'] ?? '',
-//                                             style: const TextStyle(
-//                                               fontFamily: 'Poppins',
-//                                             ),
-//                                           ),
-//                                           const SizedBox(height: 4),
-//                                           Text(
-//                                             formatDate(comment['createdAt']),
-//                                             style: const TextStyle(
-//                                               fontSize: 12,
-//                                               color: Colors.grey,
-//                                               fontFamily: 'Poppins',
-//                                             ),
-//                                           ),
-//                                         ],
-//                                       ),
+//                                       onPressed: () =>
+//                                           Navigator.of(context).pop(true),
 //                                     ),
 //                                   ],
 //                                 ),
+//                               );
+
+//                               if (confirm == true) {
+//                                 await deleteComment(
+//                                   comment['comment_id'].toString(),
+//                                 );
+//                               }
+//                             },
+//                             child: Padding(
+//                               padding: const EdgeInsets.symmetric(
+//                                 vertical: 10.0,
 //                               ),
-//                             );
-//                           }).toList(),
-//                           const SizedBox(height: 20),
-//                           const Text(
-//                             'Add a Comment',
-//                             style: TextStyle(
-//                               fontFamily: 'Poppins',
-//                               fontWeight: FontWeight.w600,
-//                               fontSize: 16,
+//                               child: Row(
+//                                 crossAxisAlignment: CrossAxisAlignment.start,
+//                                 children: [
+//                                   const Icon(
+//                                     Icons.account_circle,
+//                                     size: 32,
+//                                     color: Colors.grey,
+//                                   ),
+//                                   const SizedBox(width: 10),
+//                                   Expanded(
+//                                     child: Column(
+//                                       crossAxisAlignment:
+//                                           CrossAxisAlignment.start,
+//                                       children: [
+//                                         Text(
+//                                           name,
+//                                           style: const TextStyle(
+//                                             fontWeight: FontWeight.w600,
+//                                             fontFamily: 'Poppins',
+//                                             fontSize: 15,
+//                                           ),
+//                                         ),
+//                                         const SizedBox(height: 4),
+//                                         Text(
+//                                           comment['content'] ?? '',
+//                                           style: const TextStyle(
+//                                             fontFamily: 'Poppins',
+//                                           ),
+//                                         ),
+//                                         const SizedBox(height: 4),
+//                                         Text(
+//                                           formatDate(comment['createdAt']),
+//                                           style: const TextStyle(
+//                                             fontSize: 12,
+//                                             color: Colors.grey,
+//                                             fontFamily: 'Poppins',
+//                                           ),
+//                                         ),
+//                                       ],
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ),
 //                             ),
+//                           );
+//                         }).toList(),
+//                         const SizedBox(height: 20),
+//                         const Text(
+//                           'Add a Comment',
+//                           style: TextStyle(
+//                             fontFamily: 'Poppins',
+//                             fontWeight: FontWeight.w600,
+//                             fontSize: 16,
 //                           ),
-//                           const SizedBox(height: 10),
-//                           TextField(
-//                             controller: commentController,
-//                             maxLines: 3,
-//                             decoration: const InputDecoration(
-//                               hintText: 'Write your comment here...',
-//                               border: OutlineInputBorder(),
-//                             ),
+//                         ),
+//                         const SizedBox(height: 10),
+//                         TextField(
+//                           controller: commentController,
+//                           maxLines: 3,
+//                           decoration: const InputDecoration(
+//                             hintText: 'Write your comment here...',
+//                             border: OutlineInputBorder(),
 //                           ),
-//                           const SizedBox(height: 10),
-//                           ElevatedButton(
-//                             onPressed: submitComment,
-//                             style: ElevatedButton.styleFrom(
-//                               backgroundColor: Color(0xFFB36CC6),
-//                             ),
-//                             child: const Text('Submit'),
+//                         ),
+//                         const SizedBox(height: 10),
+//                         ElevatedButton(
+//                           onPressed: submitComment,
+//                           style: ElevatedButton.styleFrom(
+//                             backgroundColor: Color(0xFFB36CC6),
 //                           ),
-//                           const SizedBox(height: 40),
-//                         ],
-//                       ),
+//                           child: const Text('Submit'),
+//                         ),
+//                         const SizedBox(height: 40),
+//                       ],
 //                     ),
-//                   ],
-//                 ),
+//                   ),
+//                 ],
 //               ),
 //             ),
 //     );
@@ -533,6 +457,10 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
   String? error;
   final TextEditingController commentController = TextEditingController();
 
+  // Reply state
+  int? _replyingToCommentId;
+  final TextEditingController _replyController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -555,12 +483,14 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
         setState(() {
           article = json.decode(response.body);
           isLoading = false;
+          error = null;
         });
 
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Article refreshed!')));
+        // ✅ Optional success snackbar (only for manual refresh)
+        if (ScaffoldMessenger.of(context).mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Article refreshed successfully!')),
+          );
         }
       } else {
         setState(() {
@@ -602,7 +532,7 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
     try {
       final dt = DateTime.parse(dateStr);
       return DateFormat('MMMM dd, yyyy – hh:mm a').format(dt);
-    } catch (e) {
+    } catch (_) {
       return '';
     }
   }
@@ -634,83 +564,81 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
       if (response.statusCode == 201) {
         commentController.clear();
         await fetchArticle();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comment posted successfully!')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Comment posted successfully!')),
+          );
+        }
       } else {
         final body = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(body['message'] ?? 'Failed to post comment')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(body['message'] ?? 'Failed to post comment')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error submitting comment: $e')));
-    }
-  }
-
-  Future<void> _confirmDeleteArticle() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Article'),
-        content: const Text('Are you sure you want to delete this article?'),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          TextButton(
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      await _deleteArticle();
-    }
-  }
-
-  Future<void> _deleteArticle() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-
-      if (token == null) {
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('User not logged in')));
-        return;
+        ).showSnackBar(SnackBar(content: Text('Error submitting comment: $e')));
       }
+    }
+  }
 
-      final response = await http.delete(
-        Uri.parse('https://janna-server.onrender.com/api/articles/${widget.articleId}'),
+  Future<void> submitReply(int parentId) async {
+    final reply = _replyController.text.trim();
+    if (reply.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in')),
+        );
+      }
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://janna-server.onrender.com/api/articles/comment'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
+        body: jsonEncode({
+          'article_id': widget.articleId,
+          'comment': reply,
+          'parent_id': parentId,
+        }),
       );
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Article deleted successfully!')),
-        );
-        Navigator.pop(context);
+      if (response.statusCode == 201) {
+        _replyController.clear();
+        setState(() => _replyingToCommentId = null);
+        await fetchArticle();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Reply posted successfully!')),
+          );
+        }
       } else {
         final body = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(body['message'] ?? 'Failed to delete article'),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(body['message'] ?? 'Failed to post reply')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error deleting article: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error submitting reply: $e')),
+        );
+      }
     }
   }
 
@@ -752,7 +680,6 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
             fontFamily: 'Sahitya',
             fontWeight: FontWeight.w700,
             fontSize: 22,
-            color: Colors.white,
           ),
         ),
         backgroundColor: const Color(0xFFB36CC6),
@@ -783,242 +710,368 @@ class _ViewArticleScreenState extends State<ViewArticleScreen> {
           : RefreshIndicator(
               onRefresh: fetchArticle,
               color: const Color(0xFFB36CC6),
-              displacement: 40,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(12),
-                                bottomRight: Radius.circular(12),
-                              ),
-                              child: Image.asset(
-                                'assets/images/banner.png',
-                                height: 200,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                      child: Image.asset(
+                        'assets/images/banner.png',
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            article!['title'] ?? 'Untitled',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              article!['title'] ?? 'Untitled',
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: Colors.grey,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.access_time,
-                                  size: 16,
+                              const SizedBox(width: 4),
+                              Text(
+                                formatDate(article!['updatedAt']),
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 13,
                                   color: Colors.grey,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  formatDate(article!['updatedAt']),
+                              ),
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  article!['status'] ?? 'Unknown',
                                   style: const TextStyle(
                                     fontFamily: 'Poppins',
-                                    fontSize: 13,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    article!['status'] ?? 'Unknown',
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 12,
-                                      fontStyle: FontStyle.italic,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              article!['content'] ?? '',
-                              style: const TextStyle(
-                                fontFamily: 'Sahitya',
-                                fontSize: 17,
-                                height: 1.7,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            if (article!['link'] != null &&
-                                article!['link'].toString().isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 16.0),
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      _openSourceLink(article!['link']),
-                                  child: Text(
-                                    "Source: ${article!['link']}",
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      color: Color(0xFFB36CC6),
-                                      decoration: TextDecoration.underline,
-                                      fontSize: 14,
-                                    ),
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.black87,
                                   ),
                                 ),
                               ),
-                            const SizedBox(height: 30),
-                            const Text(
-                              'Comments',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            article!['content'] ?? '',
+                            style: const TextStyle(
+                              fontFamily: 'Sahitya',
+                              fontSize: 17,
+                              height: 1.7,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          if (article!['link'] != null &&
+                              article!['link'].toString().isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 16.0,
+                                bottom: 8,
+                              ),
+                              child: GestureDetector(
+                                onTap: () => _openSourceLink(article!['link']),
+                                child: Text(
+                                  "Source: ${article!['link']}",
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: Color(0xFFB36CC6),
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            ...(article!['comments'] as List<dynamic>).map((
-                              comment,
-                            ) {
-                              final name =
-                                  (comment['fullName'] ?? 'Unknown User')
-                                      .toString();
-                              return GestureDetector(
-                                onLongPress: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text("Delete Comment"),
-                                      content: const Text(
-                                        "Are you sure you want to delete this comment?",
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          child: const Text("Cancel"),
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(false),
+                          const SizedBox(height: 30),
+                          const Text(
+                            'Comments',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ...(article!['comments'] as List<dynamic>).map((
+                            comment,
+                          ) {
+                            final name = (comment['fullName'] ?? 'Unknown User')
+                                .toString();
+                            final commentId = comment['comment_id'] as int;
+                            final replies = (comment['replies'] as List<dynamic>?) ?? [];
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onLongPress: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text("Delete Comment"),
+                                        content: const Text(
+                                          "Are you sure you want to delete this comment?",
                                         ),
-                                        TextButton(
-                                          child: const Text(
-                                            "Delete",
-                                            style: TextStyle(color: Colors.red),
+                                        actions: [
+                                          TextButton(
+                                            child: const Text("Cancel"),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(false),
                                           ),
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(true),
+                                          TextButton(
+                                            child: const Text(
+                                              "Delete",
+                                              style: TextStyle(color: Colors.red),
+                                            ),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(true),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      await deleteComment(
+                                        comment['comment_id'].toString(),
+                                      );
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10.0,
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.account_circle,
+                                          size: 32,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontFamily: 'Poppins',
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                comment['content'] ?? '',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Poppins',
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    formatDate(comment['createdAt']),
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey,
+                                                      fontFamily: 'Poppins',
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        _replyingToCommentId = commentId;
+                                                      });
+                                                    },
+                                                    child: const Text(
+                                                      'Reply',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Color(0xFFB36CC6),
+                                                        fontWeight: FontWeight.w600,
+                                                        fontFamily: 'Poppins',
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  );
-
-                                  if (confirm == true) {
-                                    await deleteComment(
-                                      comment['comment_id'].toString(),
-                                    );
-                                  }
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10.0,
                                   ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(
-                                        Icons.account_circle,
-                                        size: 32,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                ),
+
+                                // Show reply input if this comment is being replied to
+                                if (_replyingToCommentId == commentId) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 42, top: 8, bottom: 8),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        TextField(
+                                          controller: _replyController,
+                                          maxLines: 2,
+                                          decoration: const InputDecoration(
+                                            hintText: 'Write your reply...',
+                                            border: OutlineInputBorder(),
+                                            contentPadding: EdgeInsets.all(8),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
                                           children: [
-                                            Text(
-                                              name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: 'Poppins',
-                                                fontSize: 15,
-                                              ),
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _replyingToCommentId = null;
+                                                  _replyController.clear();
+                                                });
+                                              },
+                                              child: const Text('Cancel'),
                                             ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              comment['content'] ?? '',
-                                              style: const TextStyle(
-                                                fontFamily: 'Poppins',
+                                            const SizedBox(width: 8),
+                                            ElevatedButton(
+                                              onPressed: () => submitReply(commentId),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFFB36CC6),
                                               ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              formatDate(comment['createdAt']),
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
-                                                fontFamily: 'Poppins',
+                                              child: const Text(
+                                                'Post Reply',
+                                                style: TextStyle(color: Colors.white),
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
-                            const SizedBox(height: 20),
-                            const Text(
-                              'Add a Comment',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
+                                ],
+
+                                // Display replies
+                                ...replies.map((reply) {
+                                  final replyName = (reply['fullName'] ?? 'Unknown User').toString();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(left: 42, top: 8),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.subdirectory_arrow_right,
+                                          size: 20,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(
+                                          Icons.account_circle,
+                                          size: 28,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                replyName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontFamily: 'Poppins',
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                reply['content'] ?? '',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Poppins',
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                formatDate(reply['createdAt']),
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.grey,
+                                                  fontFamily: 'Poppins',
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            );
+                          }),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Add a Comment',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
                             ),
-                            const SizedBox(height: 10),
-                            TextField(
-                              controller: commentController,
-                              maxLines: 3,
-                              decoration: const InputDecoration(
-                                hintText: 'Write your comment here...',
-                                border: OutlineInputBorder(),
-                              ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: commentController,
+                            maxLines: 3,
+                            decoration: const InputDecoration(
+                              hintText: 'Write your comment here...',
+                              border: OutlineInputBorder(),
                             ),
-                            const SizedBox(height: 10),
-                            ElevatedButton(
-                              onPressed: submitComment,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFFB36CC6),
-                              ),
-                              child: const Text('Submit'),
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: submitComment,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFB36CC6),
                             ),
-                            const SizedBox(height: 40),
-                          ],
-                        ),
+                            child: const Text('Submit'),
+                          ),
+                          const SizedBox(height: 40),
+                        ],
                       ),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
             ),
     );

@@ -568,6 +568,16 @@ class Profile {
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     final profileData = json['profile'] ?? {};
+
+    // Helper to build profile picture URL
+    String buildProfilePictureUrl(String? url) {
+      if (url == null || url.isEmpty) return "https://picsum.photos/200";
+      if (url.startsWith('/uploads/')) {
+        return 'https://janna-server.onrender.com$url';
+      }
+      return url;
+    }
+
     return Profile(
       name: profileData['first_name'] != null
           ? '${profileData['first_name']} ${profileData['middle_name'] ?? ''} ${profileData['last_name'] ?? ''}'
@@ -576,7 +586,7 @@ class Profile {
       email: json['email'] ?? 'No Email',
       phone: profileData['contact_number'] ?? 'No Phone',
       gender: profileData['gender'] ?? 'Not Specified',
-      imageUrl: json['profile_picture'],
+      imageUrl: buildProfilePictureUrl(json['profile_picture']),
     );
   }
 }
@@ -598,6 +608,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+  }
+
+  /// Helper function to build full profile picture URL
+  String _buildProfilePictureUrl(String? profilePicture) {
+    if (profilePicture == null || profilePicture.isEmpty) {
+      return "https://picsum.photos/200";
+    }
+    // If it starts with /uploads/, prepend the server URL
+    if (profilePicture.startsWith('/uploads/')) {
+      return 'https://janna-server.onrender.com$profilePicture';
+    }
+    // Otherwise return as is (for full URLs)
+    return profilePicture;
   }
 
   Future<void> _loadProfile() async {
