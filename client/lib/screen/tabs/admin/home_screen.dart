@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sub-pages/notification_page.dart';
+import 'sub-pages/pending_doctors_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -233,6 +234,38 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildStatCard('Events', eventCount, Icons.event),
                   _buildStatCard('Messages', unreadMessages, Icons.message),
                 ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ✅ Pending Doctors Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PendingDoctorsPage(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.person_add, color: Colors.white),
+                  label: const Text(
+                    'View Pending Doctor Approvals',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB36CC6),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
               ),
             ),
 
