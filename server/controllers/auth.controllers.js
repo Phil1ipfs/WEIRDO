@@ -86,6 +86,9 @@ exports.registerDoctor = async (req, res) => {
 			{ transaction: t }
 		);
 
+		// Get valid_id path from uploaded file
+		const validIdPath = req.file ? `/uploads/valid_ids/${req.file.filename}` : valid_id;
+
 		// Create the doctor profile linked to the user
 		const doctor = await Doctor.create(
 			{
@@ -94,7 +97,7 @@ exports.registerDoctor = async (req, res) => {
 				last_name,
 				field_id,
 				contact_number,
-				valid_id,
+				valid_id: validIdPath,
 				id_number,
 				gender,
 				user_id: user.user_id,
@@ -669,5 +672,99 @@ exports.changeProfilePicture = async (req, res) => {
 		return res
 			.status(500)
 			.json({ message: "Failed to change profile picture" });
+	}
+};
+
+// ✅ Get all pending doctors for admin approval
+exports.getPendingDoctors = async (req, res) => {
+	try {
+		const pendingDoctors = await Doctor.findAll({
+			where: { status: "pending" },
+			include: [
+				{
+					model: User,
+					as: "user",
+					attributes: ["email", "created_at"],
+				},
+				{
+					model: Field,
+					as: "field",
+					attributes: ["field_name"],
+				},
+			],
+			order: [["created_at", "DESC"]],
+		});
+
+		res.status(200).json(pendingDoctors);
+	} catch (error) {
+		console.error("Error fetching pending doctors:", error);
+		res.status(500).json({ message: "Failed to fetch pending doctors" });
+	}
+};
+
+// ✅ Approve doctor account
+exports.approveDoctor = async (req, res) => {
+	const { doctorId } = req.params;
+
+	try {
+		const doctor = await Doctor.findByPk(doctorId);
+		if (!doctor) {
+			return res.status(404).json({ message: "Doctor not found" });
+		}
+
+		if (doctor.status !== "pending") {
+			return res.status(400).json({ message: "Doctor is not pending approval" });
+		}
+
+		// Update doctor status
+		await doctor.update({ status: "enabled" });
+
+		// Update user status
+		await User.update(
+			{ status: "enabled" },
+			{ where: { user_id: doctor.user_id } }
+		);
+
+		res.status(200).json({
+			message: "Doctor approved successfully",
+			doctor,
+		});
+	} catch (error) {
+		console.error("Error approving doctor:", error);
+		res.status(500).json({ message: "Failed to approve doctor" });
+	}
+};
+
+// ✅ Reject doctor account
+exports.rejectDoctor = async (req, res) => {
+	const { doctorId } = req.params;
+	const { reason } = req.body;
+
+	try {
+		const doctor = await Doctor.findByPk(doctorId);
+		if (!doctor) {
+			return res.status(404).json({ message: "Doctor not found" });
+		}
+
+		if (doctor.status !== "pending") {
+			return res.status(400).json({ message: "Doctor is not pending approval" });
+		}
+
+		// Update doctor status to disabled
+		await doctor.update({ status: "disabled" });
+
+		// Update user status
+		await User.update(
+			{ status: "disabled" },
+			{ where: { user_id: doctor.user_id } }
+		);
+
+		res.status(200).json({
+			message: "Doctor rejected successfully",
+			reason: reason || "No reason provided",
+		});
+	} catch (error) {
+		console.error("Error rejecting doctor:", error);
+		res.status(500).json({ message: "Failed to reject doctor" });
 	}
 };
