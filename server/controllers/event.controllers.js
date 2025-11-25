@@ -485,7 +485,10 @@ exports.registerEvent = async (req, res) => {
 		});
 	} catch (error) {
 		console.error("Error registering for event:", error);
-		res.status(500).json({ message: "Internal server error.", error });
+		res.status(500).json({
+			message: "Internal server error.",
+			error: error.message
+		});
 	}
 };
 
@@ -528,7 +531,10 @@ exports.cancelRegistration = async (req, res) => {
 		res.status(200).json({ message: "Your registration has been cancelled." });
 	} catch (error) {
 		console.error("Error cancelling registration:", error);
-		res.status(500).json({ message: "Internal server error.", error });
+		res.status(500).json({
+			message: "Internal server error.",
+			error: error.message
+		});
 	}
 };
 
