@@ -23,6 +23,8 @@ module.exports = (sequelize, Sequelize) => {
 					"new_article",
 					"new_event",
 					"upcoming_event",
+					"event_registration",
+					"event_cancellation",
 					"comment",
 					"like",
 					"message"
