@@ -447,7 +447,17 @@ exports.registerEvent = async (req, res) => {
 			return res.status(401).json({ message: "No token provided." });
 		}
 
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		let decoded;
+		try {
+			decoded = jwt.verify(token, process.env.JWT_SECRET);
+		} catch (jwtError) {
+			console.error("❌ JWT verification failed:", jwtError.message);
+			return res.status(401).json({
+				message: "Invalid or expired token. Please log in again.",
+				error: jwtError.message
+			});
+		}
+
 		const userId = decoded.user_id;
 		console.log("✅ User ID from token:", userId);
 
@@ -525,7 +535,17 @@ exports.cancelRegistration = async (req, res) => {
 			return res.status(401).json({ message: "No token provided." });
 		}
 
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		let decoded;
+		try {
+			decoded = jwt.verify(token, process.env.JWT_SECRET);
+		} catch (jwtError) {
+			console.error("❌ JWT verification failed:", jwtError.message);
+			return res.status(401).json({
+				message: "Invalid or expired token. Please log in again.",
+				error: jwtError.message
+			});
+		}
+
 		const userId = decoded.user_id;
 		console.log("✅ User ID from token:", userId);
 
