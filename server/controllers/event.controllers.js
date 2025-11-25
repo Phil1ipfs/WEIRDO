@@ -437,40 +437,60 @@ exports.getUpcomingEventsThisMonth = async (req, res) => {
 
 exports.registerEvent = async (req, res) => {
 	try {
+		console.log("📝 Register event request received");
+		console.log("Headers:", req.headers);
+		console.log("Body:", req.body);
+
 		const token = req.headers["authorization"]?.split(" ")[1];
-		if (!token) return res.status(401).json({ message: "No token provided." });
+		if (!token) {
+			console.log("❌ No token provided");
+			return res.status(401).json({ message: "No token provided." });
+		}
 
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		const userId = decoded.user_id;
+		console.log("✅ User ID from token:", userId);
+
 		const { event_id } = req.body;
+		console.log("Event ID:", event_id);
 
 		if (!event_id) {
+			console.log("❌ Event ID is missing");
 			return res.status(400).json({ message: "Event ID is required." });
 		}
 
 		// ✅ Check if event exists
+		console.log("🔍 Checking if event exists...");
 		const event = await db.Event.findByPk(event_id);
 		if (!event) {
+			console.log("❌ Event not found");
 			return res.status(404).json({ message: "Event not found." });
 		}
+		console.log("✅ Event found:", event.title);
 
 		// ✅ Check if user already registered
+		console.log("🔍 Checking if user already registered...");
 		const existing = await db.EventRegister.findOne({
 			where: { event_id, user_id: userId },
 		});
 		if (existing) {
+			console.log("⚠️ User already registered");
 			return res
 				.status(400)
 				.json({ message: "You have already registered for this event." });
 		}
+		console.log("✅ User not yet registered");
 
 		// ✅ Register the user
+		console.log("📝 Creating registration...");
 		const registration = await db.EventRegister.create({
 			event_id,
 			user_id: userId,
 		});
+		console.log("✅ Registration created:", registration.event_register_id);
 
 		// ✅ Optional: create a notification
+		console.log("🔔 Creating notification...");
 		await db.Notification.create({
 			user_id: userId,
 			type: "event_registration",
@@ -478,11 +498,13 @@ exports.registerEvent = async (req, res) => {
 			message: `You successfully registered for the event "${event.title}".`,
 			related_id: event.event_id,
 		});
+		console.log("✅ Notification created");
 
 		res.status(201).json({
 			message: "You have successfully registered for the event!",
 			registration,
 		});
+		console.log("✅ Response sent successfully");
 	} catch (error) {
 		console.error("Error registering for event:", error);
 		res.status(500).json({
@@ -494,32 +516,48 @@ exports.registerEvent = async (req, res) => {
 
 exports.cancelRegistration = async (req, res) => {
 	try {
+		console.log("🚫 Cancel registration request received");
+		console.log("Body:", req.body);
+
 		const token = req.headers["authorization"]?.split(" ")[1];
-		if (!token) return res.status(401).json({ message: "No token provided." });
+		if (!token) {
+			console.log("❌ No token provided");
+			return res.status(401).json({ message: "No token provided." });
+		}
 
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		const userId = decoded.user_id;
+		console.log("✅ User ID from token:", userId);
+
 		const { event_id } = req.body;
+		console.log("Event ID:", event_id);
 
 		if (!event_id) {
+			console.log("❌ Event ID is missing");
 			return res.status(400).json({ message: "Event ID is required." });
 		}
 
 		// ✅ Check if registration exists
+		console.log("🔍 Looking for registration...");
 		const registration = await db.EventRegister.findOne({
 			where: { event_id, user_id: userId },
 		});
 
 		if (!registration) {
+			console.log("❌ Registration not found");
 			return res
 				.status(404)
 				.json({ message: "You are not registered for this event." });
 		}
+		console.log("✅ Registration found:", registration.event_register_id);
 
 		// ✅ Delete registration
+		console.log("🗑️ Deleting registration...");
 		await registration.destroy();
+		console.log("✅ Registration deleted");
 
 		// ✅ Optional: create a notification
+		console.log("🔔 Creating cancellation notification...");
 		await db.Notification.create({
 			user_id: userId,
 			type: "event_cancellation",
@@ -527,8 +565,10 @@ exports.cancelRegistration = async (req, res) => {
 			message: `You have cancelled your registration for the event.`,
 			related_id: event_id,
 		});
+		console.log("✅ Notification created");
 
 		res.status(200).json({ message: "Your registration has been cancelled." });
+		console.log("✅ Response sent successfully");
 	} catch (error) {
 		console.error("Error cancelling registration:", error);
 		res.status(500).json({
