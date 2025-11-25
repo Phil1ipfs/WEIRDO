@@ -220,54 +220,96 @@ class EventService {
 
   // 🟢 Register event
   static Future<Map<String, dynamic>> registerForEvent(int eventId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    if (token == null) throw Exception('No authentication token found.');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
 
-    final uri = Uri.parse('$baseUrl/events/register');
-    final response = await http.post(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'event_id': eventId}),
-    );
+      print('🔑 Token: ${token?.substring(0, 20)}...');
 
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 201) {
-      return {'success': true, 'message': data['message']};
-    } else {
+      if (token == null) throw Exception('No authentication token found.');
+
+      final uri = Uri.parse('$baseUrl/events/register');
+      print('📤 Registering for event $eventId');
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'event_id': eventId}),
+      );
+
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 201) {
+        return {'success': true, 'message': data['message']};
+      } else {
+        // Include error details from server
+        String errorMsg = data['message'] ?? 'Failed to register';
+        if (data['error'] != null) {
+          errorMsg += ': ${data['error']}';
+        }
+        return {
+          'success': false,
+          'message': errorMsg,
+        };
+      }
+    } catch (e) {
+      print('❌ Error in registerForEvent: $e');
       return {
         'success': false,
-        'message': data['message'] ?? 'Failed to register',
+        'message': 'Error: $e',
       };
     }
   }
 
   // ❌ Cancel registration
   static Future<Map<String, dynamic>> cancelRegistration(int eventId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    if (token == null) throw Exception('No authentication token found.');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
 
-    final uri = Uri.parse('$baseUrl/events/cancel');
-    final response = await http.post(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'event_id': eventId}),
-    );
+      print('🔑 Token: ${token?.substring(0, 20)}...');
 
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-      return {'success': true, 'message': data['message']};
-    } else {
+      if (token == null) throw Exception('No authentication token found.');
+
+      final uri = Uri.parse('$baseUrl/events/cancel');
+      print('🚫 Cancelling registration for event $eventId');
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'event_id': eventId}),
+      );
+
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      } else {
+        // Include error details from server
+        String errorMsg = data['message'] ?? 'Failed to cancel registration';
+        if (data['error'] != null) {
+          errorMsg += ': ${data['error']}';
+        }
+        return {
+          'success': false,
+          'message': errorMsg,
+        };
+      }
+    } catch (e) {
+      print('❌ Error in cancelRegistration: $e');
       return {
         'success': false,
-        'message': data['message'] ?? 'Failed to cancel registration',
+        'message': 'Error: $e',
       };
     }
   }
